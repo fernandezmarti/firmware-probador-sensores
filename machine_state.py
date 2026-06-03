@@ -86,6 +86,7 @@ class Controller:
 
     def _finish(self):
         if not detect_sensor():
+            self.status_led.waiting4sensor()
             self.set_state(State.WAITING_4_SENSOR)
     
     def set_state(self, new_state):
