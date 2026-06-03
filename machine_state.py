@@ -55,7 +55,7 @@ class Controller:
 
         self.status_led.calibration()
         calibrate() # despues de 5 intentos
-        self.set_state=(State.WAITING_4_SENSOR)
+        self.set_state(State.WAITING_4_SENSOR)
 
     def _waiting_4_sensor(self):
         self.status_led.waiting4sensor()
@@ -73,13 +73,13 @@ class Controller:
     def _test(self):
         self.status_led.measuring()
         self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan)
-        self.set_state(State.FINISH)
-
-    def _finish(self):
         if self.rmse <3 and self.mae<3:
             self.status_led.testOk()
         else:
             self.status_led.testFail()
+        self.set_state(State.FINISH)
+
+    def _finish(self):
         if not detect_sensor():
             self.set_state(State.WAITING_4_SENSOR)
     
