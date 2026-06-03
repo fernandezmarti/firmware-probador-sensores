@@ -23,13 +23,60 @@ ledR=PWMLED(24)
 ledG=PWMLED(23)
 ledB=PWMLED(18)
 
-class ledRGB():
-    def __init__(self, redpin=24, greenpin=23, bluepin=18):
-        self.red=PWMLED(redpin)
-        self.green=PWMLED(greenpin)
-        self.blue=PWMLED(bluepin)
+class statusLED():
+    def __init__(self, r=24, g=23, b=18):
+        self.red=PWMLED(r)
+        self.green=PWMLED(g)
+        self.blue=PWMLED(b)
     
     def off(self):
         self.red.off()
         self.green.off()
         self.blue.off()
+    
+    def init(self):
+        pass
+    
+    def calibration(self):
+        self.off()
+        self.green.pulse()
+        self.red.pulse()
+        self.blue.pulse()
+
+    def waiting4sensor(self):
+        self.off()
+        self.red.blink()
+        self.green.blink()
+
+    def redyToStart(self):
+        self.off()
+        self.blue.pulse()
+
+    def measuring(self):
+        self.off()
+        self.blue.pulse()
+        self.green.pulse()
+    
+    def testOk(self):
+        self.off()
+        self.green.on()
+
+    def testFail(self):
+        self.off()
+        self.red.on()
+
+class Compressor():
+    def __init__(self):
+        self.positive_fan =  PWMOutputDevice(
+        POSITIVE_FAN_PWM_PIN,
+        frequency=1000
+        )
+
+        self.negative_fan = PWMOutputDevice(
+        NEGATIVE_FAN_PWM_PIN,
+        frequency=1000
+        )
+
+    def idle(self):
+        self.negative_fan.off()
+        self.positive_fan.value=0.25
