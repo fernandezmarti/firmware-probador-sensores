@@ -50,28 +50,32 @@ class Controller:
         #init compresores, soplan y medir con sensirion pos y negativo
         #init puerto serie 
         self.set_state(State.CALIBRATION)
+        self.status_led.calibration()
+
 
     def _calibration(self):
 
-        self.status_led.calibration()
         calibrate() # despues de 5 intentos
         self.set_state(State.WAITING_4_SENSOR)
+        self.status_led.waiting4sensor()
 
     def _waiting_4_sensor(self):
-        self.status_led.waiting4sensor()
         self.compressor.idle()
         if detect_sensor():
             self.set_state(State.READY_TO_START)
+            self.status_led.redyToStart()
+
 
     def _ready_to_start(self):
-        self.status_led.redyToStart()
         if not detect_sensor():
             self.set_state(State.WAITING_4_SENSOR)
+            self.status_led.waiting4sensor()
+
         elif self.button.is_pressed:
             self.set_state(State.TEST)
-       
+            self.status_led.measuring()
+
     def _test(self):
-        self.status_led.measuring()
         self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan)
         if self.rmse <3 and self.mae<3:
             self.status_led.testOk()
