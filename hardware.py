@@ -19,10 +19,6 @@ button = Button(
     bounce_time=0.1
 )
 
-ledR=PWMLED(24)
-ledG=PWMLED(23)
-ledB=PWMLED(18)
-
 class statusLED():
     def __init__(self, r=24, g=23, b=18):
         self.red=PWMLED(r)
