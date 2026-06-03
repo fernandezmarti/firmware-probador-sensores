@@ -7,7 +7,7 @@ compressor= Compressor()
 raspi=Controller(status_led, compressor, button)
 def main():
     while True:
-        raspi.update
+        raspi.update()
 
 if __name__ == "__main__":
     main()
