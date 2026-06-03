@@ -12,7 +12,7 @@ class State(Enum):
     CALIBRATION = auto()
     WAITING_4_SENSOR= auto()
     READY_TO_START= auto()
-    MEASUREMENT = auto()
+    TEST = auto()
     FINISH=auto()
     ERROR = auto()
 
