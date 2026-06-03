@@ -3,15 +3,6 @@ from gpiozero import PWMOutputDevice, Button, PWMLED, LED
 POSITIVE_FAN_PWM_PIN = 12
 NEGATIVE_FAN_PWM_PIN = 13
 
-positive_fan = PWMOutputDevice(
-    POSITIVE_FAN_PWM_PIN,
-    frequency=1000
-)
-
-negative_fan = PWMOutputDevice(
-    NEGATIVE_FAN_PWM_PIN,
-    frequency=1000
-)
 
 button = Button(
     pin=27,
