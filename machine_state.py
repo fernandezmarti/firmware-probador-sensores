@@ -77,6 +77,7 @@ class Controller:
 
     def _test(self):
         self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan)
+        self.compressor.idle()
         if self.rmse <3 and self.mae<3:
             self.status_led.testOk()
         else:
