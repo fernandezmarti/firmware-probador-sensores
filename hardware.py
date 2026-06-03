@@ -25,9 +25,9 @@ ledB=PWMLED(18)
 
 class ledRGB():
     def __init__(self, redpin=24, greenpin=23, bluepin=18):
-        self.red=LED(24)
-        self.green=(23)
-        self.blue(18)
+        self.red=PWMLED(redpin)
+        self.green=PWMLED(greenpin)
+        self.blue=PWMLED(bluepin)
     
     def off(self):
         self.red.off()
