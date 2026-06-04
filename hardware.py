@@ -66,4 +66,4 @@ class Compressor():
 
     def idle(self):
         self.negative_fan.off()
-        self.positive_fan.value=0.25
+        self.positive_fan.value=0.3
