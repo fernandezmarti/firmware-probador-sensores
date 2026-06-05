@@ -76,14 +76,13 @@ class statusLED():
     
     def I2C_error(self):
         self.off()
-        while True:
-            for state, duration in PATTERN_3:
-                if state:
-                    self.red.on()
-                else:
-                    self.red.off()
+        for state, duration in PATTERN_3:
+            if state:
+                self.red.on()
+            else:
+                self.red.off()
 
-                time.sleep(duration)
+            time.sleep(duration)
 
 class Compressor():
     def __init__(self):

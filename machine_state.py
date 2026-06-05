@@ -51,11 +51,10 @@ class Controller:
             init_flowmeter()
             self.set_state(State.CALIBRATION)
             self.status_led.calibration()
-        except Exception as e:
+        except OSError as e:
             print(f"Error de turbina: {e}")
-            self.status_led.I2C_error()
             self.set_state(State.ERROR)
-            
+
         #init compresores, soplan y medir con sensirion pos y negativo
         #init puerto serie 
         
@@ -97,7 +96,9 @@ class Controller:
             self.status_led.waiting4sensor()
             self.set_state(State.WAITING_4_SENSOR)
         
-    def _error(self):
+    def _error(self,e):
+        if e==OSError:
+            self.status_led.I2C_error()
         if self.button.is_held:
             self.set_state(State.INIT)
     
