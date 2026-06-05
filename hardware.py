@@ -9,6 +9,7 @@ button = Button(
     pull_up=True,
     bounce_time=0.1
 )
+button.hold_time = 3
 
 class statusLED():
     def __init__(self, r=24, g=23, b=18):
@@ -51,6 +52,12 @@ class statusLED():
     def testFail(self):
         self.off()
         self.red.on()
+    
+    def I2C_error(self):
+        self.off()
+        self.red.blink(
+            on_time=0.5,
+            off_time=0.5)
 
 class Compressor():
     def __init__(self):

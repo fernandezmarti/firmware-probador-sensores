@@ -1,9 +1,7 @@
 from enum import Enum, auto
-from hardware import Compressor
 from test_runner import run_test
 from I2C_smbus2_flow_reader import init_flowmeter
 from Serial_flow_reader import calibrate, detect_sensor
-from metrics import rmse, mae
 
 
 class State(Enum):
@@ -43,10 +41,18 @@ class Controller:
             case State.FINISH:
                 self._finish()
 
+            case State.ERROR:
+                self._error()
+
 
     def _init(self):
 
-        init_flowmeter()
+        try:
+            init_flowmeter()
+        except Exception as e:
+            print(f"Error de turbina: {e}")
+            self.status_led.I2C_error()
+            self.set_state(State.ERROR)
         #init compresores, soplan y medir con sensirion pos y negativo
         #init puerto serie 
         self.set_state(State.CALIBRATION)
@@ -88,7 +94,13 @@ class Controller:
         if not detect_sensor():
             self.status_led.waiting4sensor()
             self.set_state(State.WAITING_4_SENSOR)
+        
+    def _error(self):
+        if self.button.is_held:
+            self.set_state(State.INIT)
     
     def set_state(self, new_state):
         print(f"{self.state.name} -> {new_state.name}")
         self.state = new_state
+
+    
