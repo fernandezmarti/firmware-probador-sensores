@@ -1,8 +1,29 @@
 from gpiozero import PWMOutputDevice, Button, PWMLED, LED
-
+import time
 POSITIVE_FAN_PWM_PIN = 12
 NEGATIVE_FAN_PWM_PIN = 13
 
+
+PATTERN_1 = [
+    (1, 0.25),
+    (0, 1.00),
+]
+
+PATTERN_2 = [
+    (1, 0.25),
+    (0, 0.25),
+    (1, 0.25),
+    (0, 1.00),
+]
+
+PATTERN_3 = [
+    (1, 0.25),
+    (0, 0.25),
+    (1, 0.25),
+    (0, 0.25),
+    (1, 0.25),
+    (0, 1.00),
+]
 
 button = Button(
     pin=27,
@@ -55,9 +76,13 @@ class statusLED():
     
     def I2C_error(self):
         self.off()
-        self.red.blink(
-            on_time=0.5,
-            off_time=0.5)
+        for state, duration in PATTERN_3:
+            if state:
+                self.red.on()
+            else:
+                self.red.off()
+
+            time.sleep(duration)
 
 class Compressor():
     def __init__(self):
@@ -74,3 +99,4 @@ class Compressor():
     def idle(self):
         self.negative_fan.off()
         self.positive_fan.value=0.3
+
