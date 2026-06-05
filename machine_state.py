@@ -61,8 +61,8 @@ class Controller:
         #init puerto serie
 
     def _calibration(self):
-
-        calibrate() # despues de 5 intentos
+        
+        #calibrate() # despues de 5 intentos
         self.set_state(State.WAITING_4_SENSOR)
         self.status_led.waiting4sensor()
 

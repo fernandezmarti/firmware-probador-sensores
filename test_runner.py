@@ -50,16 +50,16 @@ def run_test(positive_fan, negative_fan):
 
 def run_fan_profile(negative_fan, positive_fan):
     positive_fan.off()
-    negative_fan.value= 0.8
-    for i in range(8):
+    negative_fan.value= 1
+    for i in range(14):
         negative_fan.value -=0.05
-        time.sleep(0.2)
+        time.sleep(0.15)
     negative_fan.off()
 
     positive_fan.value= 0.4
-    for i in range(8):
+    for i in range(12):
         positive_fan.value +=0.05
-        time.sleep(0.2)
+        time.sleep(0.15)
     positive_fan.off()
 
 
