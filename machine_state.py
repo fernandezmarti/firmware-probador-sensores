@@ -3,7 +3,6 @@ from test_runner import run_test
 from I2C_smbus2_flow_reader import init_flowmeter
 from Serial_flow_reader import calibrate, detect_sensor
 
-
 class State(Enum):
     IDLE = auto()
     INIT=auto()
@@ -20,6 +19,7 @@ class Controller:
         self.status_led = status_led
         self.compressor = compressor
         self.button=button
+        self.error=None
 
     def update(self):
         match self.state:
@@ -51,14 +51,14 @@ class Controller:
             init_flowmeter()
             self.set_state(State.CALIBRATION)
             self.status_led.calibration()
-        except OSError as e:
-            print(f"Error de turbina: {e}")
+        except OSError as er:
+            print(f"Error de turbina: {er}")
+            self.error=er
             self.set_state(State.ERROR)
+            
 
         #init compresores, soplan y medir con sensirion pos y negativo
-        #init puerto serie 
-        
-
+        #init puerto serie
 
     def _calibration(self):
 
@@ -96,8 +96,8 @@ class Controller:
             self.status_led.waiting4sensor()
             self.set_state(State.WAITING_4_SENSOR)
         
-    def _error(self,e):
-        if e==OSError:
+    def _error(self):
+        if self.error==OSError:
             self.status_led.I2C_error()
         if self.button.is_held:
             self.set_state(State.INIT)

@@ -16,7 +16,7 @@ PATTERN_2 = [
     (0, 1.00),
 ]
 
-PATTERN_3 = [
+PATTERN_I2C = [
     (1, 0.25),
     (0, 0.25),
     (1, 0.25),
@@ -30,7 +30,7 @@ button = Button(
     pull_up=True,
     bounce_time=0.1
 )
-button.hold_time = 3
+button.hold_time = 1
 
 class statusLED():
     def __init__(self, r=24, g=23, b=18):
@@ -76,7 +76,7 @@ class statusLED():
     
     def I2C_error(self):
         self.off()
-        for state, duration in PATTERN_3:
+        for state, duration in PATTERN_I2C:
             if state:
                 self.red.on()
             else:
