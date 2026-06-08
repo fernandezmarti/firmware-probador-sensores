@@ -52,7 +52,7 @@ class Controller:
             self.set_state(State.CALIBRATION)
             self.status_led.calibration()
         except OSError as er:
-            print(f"Error de turbina: {er}")
+            print(f"Error de flujimetro: {er}")
             self.error=er
             self.set_state(State.ERROR)
             
@@ -62,7 +62,7 @@ class Controller:
 
     def _calibration(self):
         
-        #calibrate() # despues de 5 intentos
+        calibrate() # despues de 5 intentos
         self.set_state(State.WAITING_4_SENSOR)
         self.status_led.waiting4sensor()
 
