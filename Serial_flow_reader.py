@@ -260,7 +260,7 @@ def serial_taskV2(data_list, stop_event):
 
             data_list.append(valor)
 
-def detect_sensor(n=32):
+def detect_sensor(n=64, threshold=7):
     
     buffer = bytearray()
     #connected=True #se puede hacer algo asi xon un flag
@@ -287,7 +287,7 @@ def detect_sensor(n=32):
                 ) / 16.0
             )
             last_n_samples.append(valor)
-        if -2<np.mean(np.array(last_n_samples))<2:
+        if -threshold<np.mean(np.array(last_n_samples))<threshold:
             return False
         else:
             return True
