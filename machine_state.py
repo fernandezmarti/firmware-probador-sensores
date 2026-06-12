@@ -1,8 +1,14 @@
 from enum import Enum, auto
-from test_runner import run_test
+from test_runner import run_test, init_fan
 from I2C_smbus2_flow_reader import init_flowmeter
 from Serial_flow_reader import calibrate, detect_sensor
 from serial.serialutil import SerialException
+import time
+
+class ErrorCode(Enum):
+    I2C = auto()
+    SERIAL = auto()
+    FAN = auto()
 
 class State(Enum):
     IDLE = auto()
@@ -50,25 +56,30 @@ class Controller:
 
         try:
             detect_sensor()
-        except Exception as er:
-            print(f'Error al abrir el puerto serie: {er}')
-            self.error=er
-            self.set_state(State.ERROR)
-
             
-        try:
+            
             init_flowmeter()
-            self.set_state(State.CALIBRATION)
-            self.status_led.calibration()
-        except Exception as er:
-            print(f"Error de flujimetro: {er}")
-            self.error=er
-            self.set_state(State.ERROR)
-        
-      
 
-        #init compresores, soplan y medir con sensirion pos y negativo
-        #init puerto serie
+
+        except SerialException as er:
+            print(f'Error al abrir el puerto serie: {er}')
+            self.error= ErrorCode.SERIAL
+            self.set_state(State.ERROR)
+            return
+
+        except OSError as er:
+            print(f"Error de flujimetro: {er}")
+            self.error=ErrorCode.I2C
+            self.set_state(State.ERROR)
+            return
+        
+        if not init_fan(self.compressor.positive_fan, self.compressor.negative_fan):
+            self.error=ErrorCode.FAN
+            self.set_state(State.ERROR)
+            return
+            
+        self.set_state(State.CALIBRATION)
+        self.status_led.calibration()
 
     def _calibration(self):
         
@@ -107,14 +118,18 @@ class Controller:
             self.set_state(State.WAITING_4_SENSOR)
         
     def _error(self):
-        if self.error == OSError:
-            self.status_led.error(n_pulses=2)
+        match self.error:
+            case ErrorCode.I2C:
+                self.status_led.error(2)
 
-        elif self.error == SerialException:
-            self.status_led.error(n_pulses=3)
+            case ErrorCode.SERIAL:
+                self.status_led.error(3)
 
+            case ErrorCode.FAN:
+                self.status_led.error(4)
         if self.button.is_held:
             self.set_state(State.INIT)
+            time.sleep(1)
     
     def set_state(self, new_state):
         print(f"{self.state.name} -> {new_state.name}")
