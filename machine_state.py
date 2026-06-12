@@ -49,6 +49,14 @@ class Controller:
     def _init(self):
 
         try:
+            detect_sensor()
+        except Exception as er:
+            print(f'Error al abrir el puerto serie: {er}')
+            self.error=er
+            self.set_state(State.ERROR)
+
+            
+        try:
             init_flowmeter()
             self.set_state(State.CALIBRATION)
             self.status_led.calibration()
@@ -56,7 +64,8 @@ class Controller:
             print(f"Error de flujimetro: {er}")
             self.error=er
             self.set_state(State.ERROR)
-            
+        
+      
 
         #init compresores, soplan y medir con sensirion pos y negativo
         #init puerto serie
