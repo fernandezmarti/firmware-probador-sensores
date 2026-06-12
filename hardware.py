@@ -1,29 +1,10 @@
 from gpiozero import PWMOutputDevice, Button, PWMLED, LED
 import time
+from enum import Enum, auto
+
+
 POSITIVE_FAN_PWM_PIN = 12
 NEGATIVE_FAN_PWM_PIN = 13
-
-
-PATTERN_1 = [
-    (1, 0.25),
-    (0, 1.00),
-]
-
-PATTERN_2 = [
-    (1, 0.25),
-    (0, 0.25),
-    (1, 0.25),
-    (0, 1.00),
-]
-
-PATTERN_I2C = [
-    (1, 0.25),
-    (0, 0.25),
-    (1, 0.25),
-    (0, 0.25),
-    (1, 0.25),
-    (0, 1.00),
-]
 
 button = Button(
     pin=27,
@@ -32,11 +13,27 @@ button = Button(
 )
 button.hold_time = 1
 
+
+class LedState(Enum):
+    PULSE_ON = auto()
+    PULSE_OFF = auto()
+    PAUSE = auto()
+
+
 class statusLED():
     def __init__(self, r=24, g=23, b=18):
         self.red=PWMLED(r)
         self.green=PWMLED(g)
         self.blue=PWMLED(b)
+       
+        self.state = LedState.PAUSE
+        self.last_change = time.monotonic()
+
+        self.n_pulses = 0
+        self.pulse_counter = 0
+
+        self.interval = 0.25      
+        self.pause_time = 1.0     
     
     def off(self):
         self.red.off()
@@ -74,15 +71,51 @@ class statusLED():
         self.off()
         self.red.on()
     
-    def I2C_error(self):
-        self.off()
-        for state, duration in PATTERN_I2C:
-            if state:
+    def error(self, n_pulses):
+
+        # Solo reiniciar si cambió el patrón
+        if self.n_pulses != n_pulses:
+            self.n_pulses = n_pulses
+            self.pulse_counter = 0
+            self.state = LedState.PULSE_ON
+            self.last_change = time.monotonic()
+
+        now = time.monotonic()
+
+        match self.state:
+
+            case LedState.PULSE_ON:
+
                 self.red.on()
-            else:
+
+                if now - self.last_change >= self.interval:
+                    self.last_change = now
+                    self.state = LedState.PULSE_OFF
+
+            case LedState.PULSE_OFF:
+
                 self.red.off()
 
-            time.sleep(duration)
+                if now - self.last_change >= self.interval:
+                    self.last_change = now
+
+                    self.pulse_counter += 1
+
+                    if self.pulse_counter >= self.n_pulses:
+                        self.state = LedState.PAUSE
+                    else:
+                        self.state = LedState.PULSE_ON
+
+            case LedState.PAUSE:
+
+                self.red.off()
+
+                if now - self.last_change >= self.pause_time:
+                    self.last_change = now
+                    self.pulse_counter = 0
+                    self.state = LedState.PULSE_ON
+
+
 
 class Compressor():
     def __init__(self):
@@ -100,3 +133,10 @@ class Compressor():
         self.positive_fan.off()
         self.negative_fan.value=0.3
 
+
+
+
+
+
+
+    

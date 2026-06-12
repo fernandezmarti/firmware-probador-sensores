@@ -51,7 +51,7 @@ class Controller:
             init_flowmeter()
             self.set_state(State.CALIBRATION)
             self.status_led.calibration()
-        except OSError as er:
+        except Exception as er:
             print(f"Error de flujimetro: {er}")
             self.error=er
             self.set_state(State.ERROR)
@@ -97,8 +97,12 @@ class Controller:
             self.set_state(State.WAITING_4_SENSOR)
         
     def _error(self):
-        if self.error==OSError:
-            self.status_led.I2C_error()
+        if self.error == OSError:
+            self.status_led.error(n_pulses=2)
+
+        elif self.error == SerialException:
+            self.status_led.error(n_pulses=3)
+            
         if self.button.is_held:
             self.set_state(State.INIT)
     
