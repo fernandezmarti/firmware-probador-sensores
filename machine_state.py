@@ -2,6 +2,7 @@ from enum import Enum, auto
 from test_runner import run_test
 from I2C_smbus2_flow_reader import init_flowmeter
 from Serial_flow_reader import calibrate, detect_sensor
+from serial.serialutil import SerialException
 
 class State(Enum):
     IDLE = auto()
@@ -102,7 +103,7 @@ class Controller:
 
         elif self.error == SerialException:
             self.status_led.error(n_pulses=3)
-            
+
         if self.button.is_held:
             self.set_state(State.INIT)
     
