@@ -95,7 +95,7 @@ def _delay_us(us):
 
 
 def init_flowmeter():
-    with SMBus(1) as bus:
+    with SMBus(I2C_BUS) as bus:
        
         write = i2c_msg.write(0x40, [0x10, 0x00])
         bus.i2c_rdwr(write)
@@ -107,7 +107,7 @@ def init_flowmeter():
         
 
 def read_flow():
-    with SMBus(1) as bus:
+    with SMBus(I2C_BUS) as bus:
         write = i2c_msg.write(0x40, [0x10, 0x00])
         bus.i2c_rdwr(write)
 

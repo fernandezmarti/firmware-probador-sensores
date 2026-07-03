@@ -95,25 +95,30 @@ class Controller:
 
 
     def _ready_to_start(self):
-        if not detect_sensor():
+
+        if self.button.is_pressed:
+            self.set_state(State.TEST)
+            self.status_led.measuring()
+            return
+        
+        elif not detect_sensor(n=64, threshold=3):
             self.set_state(State.WAITING_4_SENSOR)
             self.status_led.waiting4sensor()
 
-        elif self.button.is_pressed:
-            self.set_state(State.TEST)
-            self.status_led.measuring()
+        
 
     def _test(self):
-        self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan)
+        self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan, folder=1, init=False)
         self.compressor.idle()
         if self.rmse <3 and self.mae<3:
             self.status_led.testOk()
         else:
             self.status_led.testFail()
+        time.sleep(0.2)
         self.set_state(State.FINISH)
 
     def _finish(self):
-        if not detect_sensor():
+        if not detect_sensor(threshold=2,n=64):
             self.status_led.waiting4sensor()
             self.set_state(State.WAITING_4_SENSOR)
         
@@ -128,6 +133,7 @@ class Controller:
             case ErrorCode.FAN:
                 self.status_led.error(4)
         if self.button.is_held:
+            self.status_led.off()
             self.set_state(State.INIT)
             time.sleep(1)
     

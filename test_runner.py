@@ -1,14 +1,14 @@
 import threading
 from I2C_smbus2_flow_reader import i2c_task
 from Serial_flow_reader import serial_task
+from file_manager import save_csv
 import time
-import csv
-from gpiozero import PWMOutputDevice
 import metrics
 import numpy as np
 
 
-def run_test(positive_fan, negative_fan, steps=14, csv=True):
+
+def run_test(positive_fan, negative_fan,folder=None,name=None, steps=14, csv=True, init=False):
     i2c_data = []
     serial_data = []
 
@@ -23,70 +23,77 @@ def run_test(positive_fan, negative_fan, steps=14, csv=True):
         target=serial_task,
         args=(serial_data, stop_event)
     )
+    positive_fan.off() if positive_fan is not None else None
+    negative_fan.off() if negative_fan is not None else None
 
+    time.sleep(1)
 
     i2c_thread.start()
     serial_thread.start()
 
-    run_fan_profile(negative_fan, positive_fan, steps)
+    run_fan_profile(negative_fan, positive_fan, init, steps)
 
     stop_event.set()
 
     i2c_thread.join()
     serial_thread.join()
+    print(len(i2c_data), len(serial_data))
 
-    if csv:
-        save_csv(serial_data, i2c_data)
     i2c_array=np.array(i2c_data)
     serial_array=np.array(serial_data)
-    rmse=metrics.rmse(i2c_array, serial_array)
-    mae=metrics.mae(i2c_array, serial_array)
+    if negative_fan is not None and positive_fan is not None:
+        rmse=metrics.rmse(i2c_array, serial_array)
+        mae=metrics.mae(i2c_array, serial_array)
+        if csv:
+            save_csv(serial_data, i2c_data, mae, rmse, folder)
+        return rmse, mae
+    else:
+        return np.mean(i2c_data)
+        
 
-    return rmse, mae, np.mean(i2c_data)
 
 
+def run_fan_profile(negative_fan, positive_fan, init, steps):
+    
+    if init==False:
+        Trelax=5
+    else:
+        Trelax=1
 
-def run_fan_profile(negative_fan, positive_fan, steps):
-    positive_fan.off() if positive_fan is not None else None
+    # if negative_fan is not None:
+    #     negative_fan.value= 0.3
+    #     for i in range(steps):
+    #         negative_fan.value +=0.05
+    #         time.sleep(0.15)
+    #     negative_fan.off()
+    #     time.sleep(5)
+    # if positive_fan is not None:
+    #     positive_fan.value= 0.3
+    #     for i in range(steps):
+    #         positive_fan.value +=0.05
+    #         time.sleep(0.15)
+    #     positive_fan.off()
 
     if negative_fan is not None:
         negative_fan.value= 1
-        for i in range(steps):
-            negative_fan.value -=0.05
-            time.sleep(0.15)
+        time.sleep(1.5)
         negative_fan.off()
+        time.sleep(Trelax)
     if positive_fan is not None:
-        positive_fan.value= 0.4
-        for i in range(steps):
-            positive_fan.value +=0.05
-            time.sleep(0.15)
+        positive_fan.value= 1 #0.8 y 1.5s va bien
+        time.sleep(1.5)
         positive_fan.off()
+        time.sleep(Trelax)
 
-
-
-def save_csv(serial_data, i2c_data):
-    with open("test.csv", "w", newline="") as f:
-
-        writer = csv.writer(f, delimiter=';')
-
-        writer.writerow([
-            "Serial",
-            "I2C"
-        ])
-
-        for v_serial, v_i2c in zip(serial_data, i2c_data):
-
-            writer.writerow([
-                v_serial,
-                v_i2c
-            ])
 
 def init_fan(positive_fan, negative_fan, steps=7): 
-    _,_,positive_mean = run_test(positive_fan, None, steps, csv=False)
-    time.sleep(0.5)
-    _,_,negative_mean = run_test(None, negative_fan, steps, csv=False)
+    positive_mean = run_test(positive_fan, None,None,None, steps, csv=False, init=True)
+    time.sleep(1)
+    negative_mean = run_test(None, negative_fan, steps, csv=False, init=True)
 
-    if positive_mean > 10 and negative_mean < -10:
+    if positive_mean > 5 and negative_mean < -5:
         return True
     else:
+        print(positive_mean, negative_mean)
         return False
+
