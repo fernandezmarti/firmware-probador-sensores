@@ -1,20 +1,20 @@
 from pathlib import Path
 import csv
 
-def obtener_siguiente_csv(carpeta):
-    carpeta = Path(carpeta)
-    carpeta.mkdir(parents=True, exist_ok=True)
+def obtener_siguiente_csv(folder):
+    folder = Path("Conexion larga sin codo")/folder
+    folder.mkdir(parents=True, exist_ok=True)
 
     numeros = []
 
-    for archivo in carpeta.glob("*.csv"):
+    for archivo in folder.glob("*.csv"):
         try:
             numeros.append(int(archivo.stem))
         except ValueError:
             # Ignora archivos cuyo nombre no sea un número
             pass
 
-    return carpeta / f"{max(numeros, default=0) + 1}"
+    return folder / f"{max(numeros, default=0) + 1}"
 
 
 def save_csv(serial_data, i2c_data,mae,rmse,folder=None, name=None):
