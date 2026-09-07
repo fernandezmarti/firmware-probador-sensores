@@ -319,3 +319,172 @@ def calibrateV2():
                 print("Fallo la calibracion \nCalibrando...")
                 ser.write(b'\x63')
                 ser.flush()
+
+import serial
+
+
+START_BYTE = 0x55
+
+
+class FluxmedDevice:
+
+    def __init__(
+        self,
+        port: str,
+        baudrate: int = 115200,
+        frame_size: int = 15,
+        timeout: float = 0.01
+    ):
+        self.port = port
+        self.baudrate = baudrate
+        self.frame_size = frame_size
+        self.timeout = timeout
+
+        self.ser = None
+
+        # Buffer persistente de recepción
+        self.buffer = bytearray()
+
+    def open(self):
+        if self.ser is not None and self.ser.is_open:
+            return
+
+        self.ser = serial.Serial(
+            port=self.port,
+            baudrate=self.baudrate,
+            timeout=self.timeout,
+            xonxoff=False,
+            rtscts=False,
+            dsrdtr=False,
+        )
+
+    def read_frame(self):
+        """
+        Extrae un frame del buffer.
+
+        Devuelve:
+            frame -> si hay un frame válido
+            None  -> si todavía no hay un frame completo
+                     o si el checksum es incorrecto
+        """
+
+        # Buscar START_BYTE
+        try:
+            idx = self.buffer.index(START_BYTE)
+
+        except ValueError:
+            self.buffer.clear()
+            return None
+
+        # Eliminar basura antes del START
+        if idx > 0:
+            del self.buffer[:idx]
+
+        # Esperar frame completo
+        if len(self.buffer) < self.frame_size:
+            return None
+
+        # Extraer frame
+        frame = self.buffer[:self.frame_size]
+
+        # Sacarlo del buffer
+        del self.buffer[:self.frame_size]
+
+        # Verificar checksum
+        checksum_rx = frame[-1]
+        checksum_calc = sum(frame[:-1]) & 0xFF
+
+        if checksum_calc != checksum_rx:
+            return None
+
+        return frame
+
+    def read_frames(self):
+        """
+        Lee nuevos datos del puerto y extrae todos los frames
+        completos disponibles.
+
+        Devuelve un generador de frames.
+        """
+
+        # Leer nuevos bytes
+        data = self.ser.read(64)
+
+        if data:
+            self.buffer.extend(data)
+
+        # Procesar todos los frames disponibles
+        while True:
+
+            frame = self.read_frame()
+
+            if frame is None:
+                break
+
+            yield frame
+
+    def read_flow(self):
+        """
+        Lee datos del puerto y genera los valores de flow
+        uno por uno.
+
+        Ejemplo:
+
+            for flow in device.read_flow():
+                queue.put(flow)
+        """
+
+        for frame in self.read_frames():
+
+            flow = (
+                int.from_bytes(
+                    frame[4:6],
+                    "little",
+                    signed=True
+                ) / 16.0
+            )
+
+            yield flow
+
+    def calibrate(self):
+
+        # Limpiar datos anteriores
+        self.buffer.clear()
+
+        calibrating = True
+
+        self.ser.write(b'\x63')
+        self.ser.flush()
+
+        print("Calibrando")
+
+        while calibrating:
+
+            for frame in self.read_frames():
+
+                # Solo nos interesan frames de calibración
+                if frame[1] != 4:
+                    continue
+
+                # Calibración exitosa
+                if frame[2] == 255 and frame[3] == 255:
+
+                    print("Calibración exitosa")
+
+                    calibrating = False
+                    break
+
+                # Falló la calibración
+                elif frame[2] == 254 and frame[3] == 255:
+
+                    print("Falló la calibración")
+                    print("Calibrando...")
+
+                    self.ser.write(b'\x63')
+                    self.ser.flush()
+
+    def close(self):
+
+        if self.ser is not None and self.ser.is_open:
+            self.ser.close()
+                            
