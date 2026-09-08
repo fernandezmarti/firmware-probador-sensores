@@ -52,22 +52,24 @@ class TSIDevice:
 
         if self.ser is not None and self.ser.is_open:
             return
+        try:
+            self.ser = serial.Serial(
+                port=self.port,
+                baudrate=38400,
+                bytesize=serial.EIGHTBITS,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                timeout=self.timeout,
+                xonxoff=False,
+                rtscts=False,
+                dsrdtr=False,
+            )
 
-        self.ser = serial.Serial(
-            port=self.port,
-            baudrate=38400,
-            bytesize=serial.EIGHTBITS,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            timeout=self.timeout,
-            xonxoff=False,
-            rtscts=False,
-            dsrdtr=False,
-        )
-
-        # Limpiar cualquier dato viejo
-        self.ser.reset_input_buffer()
-        self.ser.reset_output_buffer()
+            # Limpiar cualquier dato viejo
+            self.ser.reset_input_buffer()
+            self.ser.reset_output_buffer()
+        except Exception:
+            return False
 
     def close(self):
         """Cierra el puerto serie."""

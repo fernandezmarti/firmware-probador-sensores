@@ -62,11 +62,11 @@ class Controller:
     def _init(self):
 
         try:
-            self.tsi.open()
-            self.tsi.set_sample_period(4) #250Hz
+            if self.tsi.open():
+                self.tsi.set_sample_period(4) #250Hz
     
 
-            #detect_sensor()
+            detect_sensor()
             
             
             init_flowmeter()
@@ -94,7 +94,7 @@ class Controller:
 
     def _calibration(self):
         
-        #calibrate() # despues de 5 intentos
+        calibrate() # despues de 5 intentos
         self.set_state(State.WAITING_4_SENSOR)
         self.status_led.waiting4sensor()
 
@@ -102,7 +102,7 @@ class Controller:
         self.compressor.idle()
 
         if self.button.is_held:
-            if self.tsi.ser.is_open:
+            if self.tsi.ser is not None:
                 run_test(self.compressor.positive_fan, self.compressor.negative_fan, tsi=self.tsi, folder=0, init=False, csv=False, contrast=True)
             else:
                 print("ERROR en serial TSI")
@@ -127,7 +127,7 @@ class Controller:
         
 
     def _test(self):
-        self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan, serial_TSI=self.serial_TSI, folder=0, init=False, csv=True)
+        self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan, folder=0, init=False, csv=True)
         self.compressor.idle()
         if self.rmse <3 and self.mae<3:
             self.status_led.testOk()

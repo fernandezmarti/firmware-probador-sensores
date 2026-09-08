@@ -139,7 +139,7 @@ def boxplot_metrics(ax,folder, position):
 fig = plt.figure()
 plt.title("Flujo vs tiempo")
 #plot_N_tests(fig,"AAV1_T_a_SS_a_A22MM_SF_C/prueba 1 nueva matriz", sensirion=True,flux=True,all=True,color='red', show=False)
-#plot_N_tests(fig,"AAV1_T_a_SS_a_A22MM_SF_C/29", sensirion=True,flux=True,all=True, color='green',show=False)
+plot_N_tests(fig,"AAV1_T_a_SS_a_A22MM_SF_C/29", sensirion=True,flux=True,all=True, color='green',show=False)
 #plot_N_tests(fig,"AAV1_T_a_SS_a_A22MM_SF_C/F20", sensirion=True,flux=True,all=True, color='brown',show=False)
 #plot_N_tests(fig,"AAV1_T_a_SS_a_A22MM_SF_C/sensor procesado de mas", sensirion=True,flux=True,all=True, color='yellow',show=False)
 plot_N_tests(fig,"Conexion larga sin codo/Pasan", sensirion=True,flux=True,all=True, color='red',show=False)

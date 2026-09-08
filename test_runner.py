@@ -11,7 +11,7 @@ import queue
 import matplotlib.pyplot as plt
 
 
-def run_test(positive_fan, negative_fan,tsi,folder=None,name=None, steps=14, csv=True, init=False, contrast=False):
+def run_test(positive_fan, negative_fan,tsi=None,folder=None,name=None, steps=14, csv=True, init=False, contrast=False):
     sensirion_data = []
     flux_data = []
     tsi_data = []
