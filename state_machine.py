@@ -4,7 +4,7 @@ from I2C_smbus2_flow_reader import init_flowmeter
 from Serial_flow_reader import calibrate, detect_sensor
 from serial.serialutil import SerialException
 import time
-from TSI import init_TSI
+from TSI import TSIDevice
 
 class ErrorCode(Enum):
     I2C = auto()
@@ -28,6 +28,12 @@ class Controller:
         self.compressor = compressor
         self.button=button
         self.error=None
+
+        self.tsi=TSIDevice(
+            port="/dev/ttyUSB1",
+            series=4000,
+            block_size=500,
+        )
 
     def update(self):
         match self.state:
@@ -56,7 +62,8 @@ class Controller:
     def _init(self):
 
         try:
-            self.serial_TSI=init_TSI()
+            self.tsi.open()
+            self.tsi.set_sample_period(4) #250Hz
     
 
             #detect_sensor()
@@ -95,8 +102,8 @@ class Controller:
         self.compressor.idle()
 
         if self.button.is_held:
-            if self.serial_TSI is not None:
-                run_test(self.compressor.positive_fan, self.compressor.negative_fan, serial_TSI=self.serial_TSI, folder=0, init=False, csv=True, calibration=True)
+            if self.tsi.ser.is_open:
+                run_test(self.compressor.positive_fan, self.compressor.negative_fan, tsi=self.tsi, folder=0, init=False, csv=False, contrast=True)
             else:
                 print("ERROR en serial TSI")
 

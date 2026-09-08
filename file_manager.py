@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 import csv
 
@@ -21,15 +22,21 @@ def save_csv(serial_data, i2c_data,mae,rmse,folder=None, name=None):
     
     if folder==0:
         name=obtener_siguiente_csv("Pasan")
+        header="SF-A-022"
     elif folder==1:
         name=obtener_siguiente_csv("Fallan")
+        header="SF-A-022"
+
+    elif folder==999:
+        name=  Path("contrastacion") / datetime.now().strftime("%Y%m%d_%H%M%S")
+        header="TSI"
 
     with open(f'{name}.csv', "w", newline="") as f:
 
         writer = csv.writer(f, delimiter=';')
 
         writer.writerow([
-            "SF-A-022",
+            header,
             "Sensirion",
             "RMSE",
             "MAE"

@@ -126,9 +126,9 @@ def read_flow():
             value= (rx_msb << 8) | rx_lsb
             return round((value - 32000)/140,4)
 
-def i2c_task(data, stop_event, calibration):
-    if calibration:
-        fs=250
+def i2c_task(data, stop_event, contrast):
+    if contrast:
+        fs=248
     else:
         fs = 256
     while not stop_event.is_set():
