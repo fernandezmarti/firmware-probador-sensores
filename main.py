@@ -1,6 +1,6 @@
 
 from hardware import button, statusLED, Compressor
-from machine_state import Controller
+from state_machine import Controller
 
 status_led=statusLED()
 compressor= Compressor()

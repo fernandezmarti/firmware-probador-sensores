@@ -4,6 +4,7 @@ from I2C_smbus2_flow_reader import init_flowmeter
 from Serial_flow_reader import calibrate, detect_sensor
 from serial.serialutil import SerialException
 import time
+from TSI import init_TSI
 
 class ErrorCode(Enum):
     I2C = auto()
@@ -55,7 +56,10 @@ class Controller:
     def _init(self):
 
         try:
-            detect_sensor()
+            self.serial_TSI=init_TSI()
+    
+
+            #detect_sensor()
             
             
             init_flowmeter()
@@ -83,12 +87,20 @@ class Controller:
 
     def _calibration(self):
         
-        calibrate() # despues de 5 intentos
+        #calibrate() # despues de 5 intentos
         self.set_state(State.WAITING_4_SENSOR)
         self.status_led.waiting4sensor()
 
     def _waiting_4_sensor(self):
         self.compressor.idle()
+
+        if self.button.is_held:
+            if self.serial_TSI is not None:
+                run_test(self.compressor.positive_fan, self.compressor.negative_fan, serial_TSI=self.serial_TSI, folder=0, init=False, csv=True, calibration=True)
+            else:
+                print("ERROR en serial TSI")
+
+
         if detect_sensor():
             self.set_state(State.READY_TO_START)
             self.status_led.redyToStart()
@@ -108,7 +120,7 @@ class Controller:
         
 
     def _test(self):
-        self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan, folder=0, init=False, csv=True)
+        self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan, serial_TSI=self.serial_TSI, folder=0, init=False, csv=True)
         self.compressor.idle()
         if self.rmse <3 and self.mae<3:
             self.status_led.testOk()
