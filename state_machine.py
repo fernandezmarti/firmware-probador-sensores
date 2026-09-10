@@ -20,6 +20,7 @@ class State(Enum):
     TEST = auto()
     FINISH=auto()
     ERROR = auto()
+    CONTRAST = auto()
 
 class Controller:
     def __init__(self, status_led, compressor, button):
@@ -58,12 +59,18 @@ class Controller:
             case State.ERROR:
                 self._error()
 
+            case State.CONTRAST:
+                self._contrast()
+
 
     def _init(self):
 
         try:
             if self.tsi.open():
                 self.tsi.set_sample_period(4) #250Hz
+                self.status_led.contrast()
+                self.set_state(State.CONTRAST)
+                return
     
 
             detect_sensor()
@@ -97,6 +104,10 @@ class Controller:
         calibrate() # despues de 5 intentos
         self.set_state(State.WAITING_4_SENSOR)
         self.status_led.waiting4sensor()
+    def _contrast(self):
+        if self.button.is_pressed:
+            run_test(self.compressor.positive_fan, self.compressor.negative_fan, tsi=self.tsi, folder=0, init=False, csv=False, contrast=True)
+
 
     def _waiting_4_sensor(self):
         self.compressor.idle()

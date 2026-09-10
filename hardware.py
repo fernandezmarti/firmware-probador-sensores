@@ -114,7 +114,29 @@ class statusLED():
                     self.last_change = now
                     self.pulse_counter = 0
                     self.state = LedState.PULSE_ON
+    def contrast(self):
+        t = time.monotonic()
+        speed = 0.5
 
+        phase = (t * speed) % 1.0
+        x = phase * 6
+
+        if x < 1:
+            r, g, b = 1, x, 0
+        elif x < 2:
+            r, g, b = 2 - x, 1, 0
+        elif x < 3:
+            r, g, b = 0, 1, x - 2
+        elif x < 4:
+            r, g, b = 0, 4 - x, 1
+        elif x < 5:
+            r, g, b = x - 4, 0, 1
+        else:
+            r, g, b = 1, 0, 6 - x
+
+        self.red.value = r
+        self.green.value = g
+        self.blue.value = b
 
 
 class Compressor():
