@@ -128,7 +128,7 @@ def read_flow():
 
 def i2c_task(data, stop_event, contrast):
     if contrast:
-        fs=248
+        fs=250
     else:
         fs = 256
     while not stop_event.is_set():

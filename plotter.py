@@ -208,3 +208,44 @@ plot_metrics(ax,"Fallan", color= 'red' , marker='x',show=False)
 plot_metrics(ax,"Pasan", color='green', marker='o', show=False)
 """
 
+def graficar_csvs(carpeta=r"contrastacion"):
+    carpeta = Path(carpeta)
+    archivos = sorted(carpeta.glob("*.csv"))
+
+    if not archivos:
+        print(f"No se encontraron archivos CSV en: {carpeta}")
+        return
+    fig, ax1 = plt.subplots(figsize=(12, 5))
+
+    for archivo in archivos:
+        print(f"Leyendo: {archivo.name}")
+
+        df = pd.read_csv(archivo, sep=";")
+
+        # Flujo
+        ax1.plot(
+            df["TSI"],
+            label="TSI",
+            alpha=0.5
+        )
+
+        ax1.plot(
+            np.abs(df["Sensirion"]),
+            label="Sensirion",
+            alpha=0.5
+        )
+
+        ax1.set_xlabel("ticks")
+        ax1.set_ylabel("Flujo")
+        ax1.grid(True)
+
+        
+    plt.title(carpeta)
+    plt.legend()
+    fig.tight_layout()
+
+    plt.show()
+
+
+
+graficar_csvs()
