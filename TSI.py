@@ -1,8 +1,4 @@
 import serial
-import time
-import threading
-import queue
-import matplotlib.pyplot as plt
 import numpy as np
 
 class TSIDevice:
