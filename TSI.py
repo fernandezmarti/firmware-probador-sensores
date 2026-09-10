@@ -231,7 +231,7 @@ def tsi_acquisition_task(tsi, data_queue, stop_event):
     while not stop_event.is_set():
 
         try:
-            block = tsi.read_flow(400)
+            block = tsi.read_flow(900)
             data_queue.put(block)
 
         except Exception as e:
