@@ -8,7 +8,6 @@ import numpy as np
 import threading
 import queue
 
-import matplotlib.pyplot as plt
 
 
 def run_test(positive_fan, negative_fan,tsi=None,folder=None,name=None, steps=14, csv=True, init=False, contrast=False):
