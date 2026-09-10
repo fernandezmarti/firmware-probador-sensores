@@ -60,6 +60,7 @@ class Controller:
                 self._error()
 
             case State.CONTRAST:
+                self.status_led.contrast()
                 self._contrast()
 
 
@@ -68,11 +69,12 @@ class Controller:
         try:
             self.tsi.open()
             self.tsi.set_sample_period(4) #250Hz
-            self.status_led.contrast()
             self.set_state(State.CONTRAST)
             return
         except:
             pass
+
+        
         try:
     
             detect_sensor()
