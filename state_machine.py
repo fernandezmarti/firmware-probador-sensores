@@ -66,13 +66,15 @@ class Controller:
     def _init(self):
 
         try:
-            if self.tsi.open():
-                self.tsi.set_sample_period(4) #250Hz
-                self.status_led.contrast()
-                self.set_state(State.CONTRAST)
-                return
+            self.tsi.open()
+            self.tsi.set_sample_period(4) #250Hz
+            self.status_led.contrast()
+            self.set_state(State.CONTRAST)
+            return
+        except:
+            pass
+        try:
     
-
             detect_sensor()
             
             
@@ -104,6 +106,7 @@ class Controller:
         calibrate() # despues de 5 intentos
         self.set_state(State.WAITING_4_SENSOR)
         self.status_led.waiting4sensor()
+
     def _contrast(self):
         if self.button.is_pressed:
             run_test(self.compressor.positive_fan, self.compressor.negative_fan, tsi=self.tsi, folder=0, init=False, csv=False, contrast=True)
