@@ -71,10 +71,9 @@ class Controller:
             self.tsi.set_sample_period(4) #250Hz
             self.set_state(State.CONTRAST)
             return
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
-        
         try:
     
             detect_sensor()

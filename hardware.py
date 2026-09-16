@@ -115,10 +115,12 @@ class statusLED():
                     self.pulse_counter = 0
                     self.state = LedState.PULSE_ON
     def contrast(self):
-        t = time.monotonic()
-        speed = 0.5
+        now = time.monotonic()
 
-        phase = (t * speed) % 1.0
+        # Duración de un ciclo completo del arcoíris
+        cycle_time = 3.0
+
+        phase = (now % cycle_time) / cycle_time
         x = phase * 6
 
         if x < 1:
