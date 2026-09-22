@@ -10,7 +10,7 @@ import queue
 
 
 
-def run_test(positive_fan, negative_fan,tsi=None,folder=None,name=None, steps=14, csv=True, init=False, contrast=False):
+def run_test(positive_fan, negative_fan,flux, sensirion, tsi=None,folder=None,name=None, csv=True, init=False, contrast=False):
     sensirion_data = []
     flux_data = []
     tsi_data = []
@@ -19,15 +19,20 @@ def run_test(positive_fan, negative_fan,tsi=None,folder=None,name=None, steps=14
     stop_event = threading.Event()
 
     sensirion_thread = threading.Thread(
-        target=i2c_task,
-        args=(sensirion_data, stop_event, contrast)
+        target=sensirion.acquisition_task,
+        args=(
+            sensirion_data,
+            stop_event,
+        ),
     )
 
     flux_thread = threading.Thread(
-        target=serial_task,
-        args=(flux_data, stop_event)
-    )
-
+    target=flux.acquisition_task,
+    args=(
+        flux_data,
+        stop_event,
+    ),
+)
 
     tsi_thread = threading.Thread(
         target=tsi_acquisition_task,
@@ -42,7 +47,7 @@ def run_test(positive_fan, negative_fan,tsi=None,folder=None,name=None, steps=14
     sensirion_thread.start()
     flux_thread.start() if not contrast else tsi_thread.start()
 
-    run_fan_profile(negative_fan, positive_fan, init, steps)
+    run_fan_profile(negative_fan, positive_fan, init)
 
     stop_event.set()
 
@@ -81,26 +86,12 @@ def run_test(positive_fan, negative_fan,tsi=None,folder=None,name=None, steps=14
 
 
 
-def run_fan_profile(negative_fan, positive_fan, init, steps):
+def run_fan_profile(negative_fan, positive_fan, init):
     
     if init==False:
         Trelax=5
     else:
         Trelax=1
-
-    # if negative_fan is not None:
-    #     negative_fan.value= 0.3
-    #     for i in range(steps):
-    #         negative_fan.value +=0.05
-    #         time.sleep(0.15)
-    #     negative_fan.off()
-    #     time.sleep(5)
-    # if positive_fan is not None:
-    #     positive_fan.value= 0.3
-    #     for i in range(steps):
-    #         positive_fan.value +=0.05
-    #         time.sleep(0.15)
-    #     positive_fan.off()
 
     if negative_fan is not None:
         negative_fan.value= 1
@@ -114,10 +105,10 @@ def run_fan_profile(negative_fan, positive_fan, init, steps):
         time.sleep(Trelax)
 
 
-def init_fan(positive_fan, negative_fan, steps=7): 
-    positive_mean = run_test(positive_fan, None,None,None, steps, csv=False, init=True)
+def init_fan(positive_fan, negative_fan, flux, sensirion): 
+    positive_mean = run_test(positive_fan=positive_fan,negative_fan= None,flux=flux, sensirion=sensirion,tsi=None,folder=None,name=None, csv=False, init=True)
     time.sleep(1)
-    negative_mean = run_test(None, negative_fan, steps, csv=False, init=True)
+    negative_mean = run_test(positive_fan=None,negative_fan= negative_fan,flux=flux, sensirion=sensirion,tsi=None,folder=None,name=None, csv=False, init=True)
 
     if positive_mean > 5 and negative_mean < -5:
         return True

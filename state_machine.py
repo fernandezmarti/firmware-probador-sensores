@@ -1,7 +1,7 @@
 from enum import Enum, auto
 from test_runner import run_test, init_fan
-from I2C_smbus2_flow_reader import init_flowmeter
-from Serial_flow_reader import calibrate, detect_sensor
+from I2C_smbus2_flow_reader import SensirionDevice
+from Serial_flow_reader import FluxmedDevice
 from serial.serialutil import SerialException
 import time
 from TSI import TSIDevice
@@ -35,6 +35,12 @@ class Controller:
             series=4000,
             block_size=500,
         )
+
+        self.flux= FluxmedDevice(
+            port= "/dev/ttyUSB0",
+        )
+
+        self.sensirion= SensirionDevice()
 
     def update(self):
         match self.state:
@@ -76,11 +82,11 @@ class Controller:
 
         try:
     
-            detect_sensor()
+            self.flux.open()
             
             
-            init_flowmeter()
-
+            self.sensirion.open()
+            self.sensirion.initialize()
 
         except SerialException as er:
             print(f'Error al abrir el puerto serie: {er}')
@@ -104,26 +110,19 @@ class Controller:
 
     def _calibration(self):
         
-        calibrate() # despues de 5 intentos
+        self.flux.calibrate(timeout=30, max_attempts=15) # despues de 5 intentos
         self.set_state(State.WAITING_4_SENSOR)
         self.status_led.waiting4sensor()
 
     def _contrast(self):
         if self.button.is_pressed:
-            run_test(self.compressor.positive_fan, self.compressor.negative_fan, tsi=self.tsi, folder=0, init=False, csv=False, contrast=True)
+            run_test(self.compressor.positive_fan, self.compressor.negative_fan,flux=None,sensirion=self.sensirion, tsi=self.tsi, folder=0, init=False, csv=False, contrast=True)
 
 
     def _waiting_4_sensor(self):
         self.compressor.idle()
 
-        if self.button.is_held:
-            if self.tsi.ser is not None:
-                run_test(self.compressor.positive_fan, self.compressor.negative_fan, tsi=self.tsi, folder=0, init=False, csv=False, contrast=True)
-            else:
-                print("ERROR en serial TSI")
-
-
-        if detect_sensor():
+        if self.flux.detect_sensor():
             self.set_state(State.READY_TO_START)
             self.status_led.redyToStart()
 
@@ -135,14 +134,14 @@ class Controller:
             self.status_led.measuring()
             return
         
-        elif not detect_sensor(n=64, threshold=3):
+        elif not self.flux.detect_sensor(n=64, threshold=3):
             self.set_state(State.WAITING_4_SENSOR)
             self.status_led.waiting4sensor()
 
         
 
     def _test(self):
-        self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan, folder=0, init=False, csv=True)
+        self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan, flux=self.flux,sensirion=self.sensirion, tsi=None, folder=0, init=False, csv=True)
         self.compressor.idle()
         if self.rmse <3 and self.mae<3:
             self.status_led.testOk()
@@ -152,7 +151,7 @@ class Controller:
         self.set_state(State.FINISH)
 
     def _finish(self):
-        if not detect_sensor(threshold=2,n=64):
+        if not self.flux.detect_sensor(threshold=2,n=64):
             self.status_led.waiting4sensor()
             self.set_state(State.WAITING_4_SENSOR)
         

@@ -140,3 +140,276 @@ def i2c_task(data, stop_event, contrast):
 
 
 
+from smbus2 import SMBus, i2c_msg
+import time
+
+
+class SensirionDevice:
+
+    def __init__(
+        self,
+        bus_number=1,
+        address=0x40,
+        read_delay=0.001,
+    ):
+        self.bus_number = bus_number
+        self.address = address
+        self.read_delay = read_delay
+
+        self.bus = None
+
+        self.crc_errors = 0
+        self.samples_ok = 0
+
+
+    # ==========================================================
+    # CONNECTION
+    # ==========================================================
+
+    def open(self):
+
+        if self.bus is not None:
+            return
+
+        self.bus = SMBus(
+            self.bus_number
+        )
+
+
+    def close(self):
+
+        if self.bus is not None:
+
+            self.bus.close()
+            self.bus = None
+
+
+    @property
+    def is_open(self):
+        return self.bus is not None
+
+
+    def _check_open(self):
+
+        if not self.is_open:
+
+            raise RuntimeError(
+                "SensirionDevice: "
+                "I2C bus is not open"
+            )
+
+
+    # ==========================================================
+    # CRC
+    # ==========================================================
+
+    @staticmethod
+    def _calculate_crc(msb, lsb):
+
+        crc = 0x00
+
+        for byte in (msb, lsb):
+
+            crc ^= byte
+
+            for _ in range(8):
+
+                if crc & 0x80:
+                    crc = (
+                        (crc << 1)
+                        ^ 0x31
+                    )
+
+                else:
+                    crc <<= 1
+
+                crc &= 0xFF
+
+        return crc
+
+
+    # ==========================================================
+    # INITIALIZATION
+    # ==========================================================
+
+    def initialize(self):
+
+        self._check_open()
+
+        write = i2c_msg.write(
+            self.address,
+            [0x10, 0x00],
+        )
+
+        self.bus.i2c_rdwr(
+            write
+        )
+
+        time.sleep(0.1)
+
+        # Primera lectura para comprobar
+        # que el sensor responde
+        read = i2c_msg.read(
+            self.address,
+            3,
+        )
+
+        self.bus.i2c_rdwr(
+            read
+        )
+
+
+    # ==========================================================
+    # READ
+    # ==========================================================
+
+    def read_flow(self):
+
+        self._check_open()
+
+        write = i2c_msg.write(
+            self.address,
+            [0x10, 0x00],
+        )
+
+        self.bus.i2c_rdwr(
+            write
+        )
+
+        time.sleep(
+            self.read_delay
+        )
+
+        read = i2c_msg.read(
+            self.address,
+            3,
+        )
+
+        self.bus.i2c_rdwr(
+            read
+        )
+
+        data = list(read)
+
+        rx_msb = data[0]
+        rx_lsb = data[1]
+        rx_crc = data[2]
+
+        crc = self._calculate_crc(
+            rx_msb,
+            rx_lsb,
+        )
+
+        if crc != rx_crc:
+
+            self.crc_errors += 1
+
+            return None
+
+        raw = (
+            (rx_msb << 8)
+            | rx_lsb
+        )
+
+        flow = (
+            raw - 32000
+        ) / 140
+
+        self.samples_ok += 1
+
+        return round(
+            flow,
+            4,
+        )
+
+
+    # ==========================================================
+    # ACQUISITION
+    # ==========================================================
+
+    def acquisition_task(
+        self,
+        data_list,
+        stop_event,
+        sample_rate=250,
+    ):
+
+        period = (
+            1.0 / sample_rate
+        )
+
+        next_sample = (
+            time.perf_counter()
+        )
+
+        while not stop_event.is_set():
+
+            flow = self.read_flow()
+
+            timestamp = (
+                time.perf_counter_ns()
+            )
+
+            if flow is not None:
+
+                data_list.append(
+                    #(
+                        #timestamp,
+                    flow#,   # sacar todos los # y sumar un tab aca
+                    #)
+                )
+
+            next_sample += period
+
+            remaining = (
+                next_sample
+                - time.perf_counter()
+            )
+
+            if remaining > 0:
+
+                stop_event.wait(
+                    remaining
+                )
+
+            else:
+
+                next_sample = (
+                    time.perf_counter()
+                )
+
+
+    # ==========================================================
+    # DIAGNOSTICS
+    # ==========================================================
+
+    def get_stats(self):
+
+        return {
+            "samples_ok":
+                self.samples_ok,
+
+            "crc_errors":
+                self.crc_errors,
+        }
+
+
+    # ==========================================================
+    # CONTEXT MANAGER
+    # =========================================================
+
+    def __enter__(self):
+
+        self.open()
+
+        return self
+
+
+    def __exit__(
+        self,
+        exc_type,
+        exc_value,
+        traceback,
+    ):
+
+        self.close()
