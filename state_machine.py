@@ -100,7 +100,7 @@ class Controller:
             self.set_state(State.ERROR)
             return
         
-        if not init_fan(self.compressor.positive_fan, self.compressor.negative_fan):
+        if not init_fan(self.compressor.positive_fan, self.compressor.negative_fan,flux=self.flux, sensirion=self.sensirion):
             self.error=ErrorCode.FAN
             self.set_state(State.ERROR)
             return
