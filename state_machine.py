@@ -72,7 +72,7 @@ class Controller:
             self.set_state(State.CONTRAST)
             return
         except Exception as e:
-            print(e)
+            print("error en tsi", e)
 
         try:
     
