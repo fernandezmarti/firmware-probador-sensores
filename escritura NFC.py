@@ -94,7 +94,7 @@ print("Bloque autenticado")
 # Preparar texto
 # --------------------------------------------------
 
-texto = "Hola Martin"
+texto = "99-999"
 
 datos = list(texto.encode("utf-8"))
 

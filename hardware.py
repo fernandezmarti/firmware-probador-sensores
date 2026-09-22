@@ -3,8 +3,8 @@ import time
 from enum import Enum, auto
 
 
-POSITIVE_FAN_PWM_PIN = 12
-NEGATIVE_FAN_PWM_PIN = 13
+POSITIVE_FAN_PWM_PIN = 13
+NEGATIVE_FAN_PWM_PIN = 12
 
 button = Button(
     pin=27,
