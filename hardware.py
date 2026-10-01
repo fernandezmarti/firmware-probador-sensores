@@ -3,11 +3,11 @@ import time
 from enum import Enum, auto
 
 
-POSITIVE_FAN_PWM_PIN = 13
-NEGATIVE_FAN_PWM_PIN = 12
+POSITIVE_FAN_PWM_PIN = 23
+NEGATIVE_FAN_PWM_PIN = 26
 
 button = Button(
-    pin=27,
+    pin=6,
     pull_up=True,
     bounce_time=0.1
 )
@@ -21,7 +21,7 @@ class LedState(Enum):
 
 
 class statusLED():
-    def __init__(self, r=24, g=23, b=18):
+    def __init__(self, r=13, g=14, b=10):
         self.red=PWMLED(r)
         self.green=PWMLED(g)
         self.blue=PWMLED(b)
