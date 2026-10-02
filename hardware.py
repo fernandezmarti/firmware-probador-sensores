@@ -7,7 +7,7 @@ POSITIVE_FAN_PWM_PIN = 12
 NEGATIVE_FAN_PWM_PIN = 13
 
 button = Button(
-    pin=6,
+    pin=25,
     pull_up=True,
     bounce_time=0.1
 )
@@ -21,7 +21,7 @@ class LedState(Enum):
 
 
 class statusLED():
-    def __init__(self, r=13, g=14, b=10):
+    def __init__(self, r=9, g=11, b=8):
         self.red=PWMLED(r)
         self.green=PWMLED(g)
         self.blue=PWMLED(b)
