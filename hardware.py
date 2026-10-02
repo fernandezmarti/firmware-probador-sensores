@@ -43,7 +43,7 @@ class statusLED():
     def init(self):
         self.off()
         self.red.on()
-        self.green.value=165/255
+        self.green.value=127/255
     
     def calibration(self):
         pass
