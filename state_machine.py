@@ -30,6 +30,8 @@ class Controller:
         self.button=button
         self.error=None
 
+        self.status_led.init()
+
         self.tsi=TSIDevice(
             port="/dev/ttyUSB1",
             series=4000,
