@@ -7,7 +7,7 @@ POSITIVE_FAN_PWM_PIN = 12
 NEGATIVE_FAN_PWM_PIN = 13
 
 button = Button(
-    pin=27,
+    pin=25,
     pull_up=True,
     bounce_time=0.1
 )
@@ -21,7 +21,7 @@ class LedState(Enum):
 
 
 class statusLED():
-    def __init__(self, r=24, g=23, b=18):
+    def __init__(self, r=9, g=11, b=8):
         self.red=PWMLED(r)
         self.green=PWMLED(g)
         self.blue=PWMLED(b)
@@ -115,10 +115,12 @@ class statusLED():
                     self.pulse_counter = 0
                     self.state = LedState.PULSE_ON
     def contrast(self):
-        t = time.monotonic()
-        speed = 0.5
+        now = time.monotonic()
 
-        phase = (t * speed) % 1.0
+        # Duración de un ciclo completo del arcoíris
+        cycle_time = 3.0
+
+        phase = (now % cycle_time) / cycle_time
         x = phase * 6
 
         if x < 1:
