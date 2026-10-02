@@ -21,7 +21,7 @@ class LedState(Enum):
 
 
 class statusLED():
-    def __init__(self, r=9, g=11, b=8):
+    def __init__(self, r=8, g=11, b=9):
         self.red=PWMLED(r)
         self.green=PWMLED(g)
         self.blue=PWMLED(b)
