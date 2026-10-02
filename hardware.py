@@ -41,35 +41,39 @@ class statusLED():
         self.blue.off()
     
     def init(self):
-        pass
+        self.off()
+        self.red.on()
+        self.green.value(165/255)
     
     def calibration(self):
-        self.off()
-        self.green.pulse()
-        self.red.pulse()
-        self.blue.pulse()
+        pass
+        # self.off()
+        # self.green.pulse()
+        # self.red.pulse()
+        # self.blue.pulse()
 
     def waiting4sensor(self):
         self.off()
-        self.red.blink()
-        self.green.blink()
+        self.blue.blink()
 
     def redyToStart(self):
-        self.off()
-        self.blue.pulse()
+        pass
+        # self.off()
+        # self.blue.pulse()
 
     def measuring(self):
-        self.off()
-        self.blue.pulse()
-        self.green.pulse()
+        self.blue.on()
+        # self.off()
+        # self.blue.pulse()
+        # self.green.pulse()
     
     def testOk(self):
         self.off()
-        self.green.on()
+        self.green.blink()
 
     def testFail(self):
         self.off()
-        self.red.on()
+        self.red.blink()
     
     def error(self, n_pulses):
 
