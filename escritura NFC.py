@@ -94,7 +94,7 @@ print("Bloque autenticado")
 # Preparar texto
 # --------------------------------------------------
 
-texto = "99-999"
+texto = input("ingese numero de lote:")
 
 datos = list(texto.encode("utf-8"))
 
