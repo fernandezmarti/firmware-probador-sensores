@@ -129,10 +129,13 @@ class Controller:
     def _contrast(self):
         if self.button.is_pressed:
             self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan, tsi=self.tsi, folder=0, init=False, csv=False, contrast=True)
-        if self.rmse <3 and self.mae<3:
-            self.status_led.testOk()
-        else:
-            self.status_led.testFail()
+            if self.rmse <3 and self.mae<3:
+                self.status_led.testOk()
+            else:
+                self.status_led.testFail()
+        elif not (self.ser is not None and self.ser.is_open):
+            self.set_state(State.INIT)
+            self.status_led.init()
 
 
     def _waiting_4_card(self):
@@ -201,7 +204,7 @@ class Controller:
 
                 
         if self.button.is_held:
-            self.status_led.off()
+            self.status_led.init()
             self.set_state(State.INIT)
             time.sleep(1)
     
