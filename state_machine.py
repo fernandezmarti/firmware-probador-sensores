@@ -5,16 +5,19 @@ from Serial_flow_reader import calibrate, detect_sensor
 from serial.serialutil import SerialException
 import time
 from TSI import TSIDevice
+from NFC import NFCReader
 
 class ErrorCode(Enum):
     I2C = auto()
     SERIAL = auto()
     FAN = auto()
+    NFC = auto()
 
 class State(Enum):
     IDLE = auto()
     INIT=auto()
     CALIBRATION = auto()
+    WAITING_4_CARD= auto()
     WAITING_4_SENSOR= auto()
     READY_TO_START= auto()
     TEST = auto()
@@ -38,6 +41,10 @@ class Controller:
             block_size=500,
         )
 
+        self.NFC_reader= NFCReader()
+
+        self.lot=None
+
     def update(self):
         match self.state:
             case State.INIT:
@@ -45,6 +52,9 @@ class Controller:
 
             case State.CALIBRATION:
                 self._calibration()
+
+            case State.WAITING_4_CARD:
+                self._waiting_4_card()
 
             case State.WAITING_4_SENSOR:
                 self._waiting_4_sensor()
@@ -78,7 +88,7 @@ class Controller:
 
         
         try:
-    
+
             detect_sensor()
             
             
@@ -101,7 +111,11 @@ class Controller:
             self.error=ErrorCode.FAN
             self.set_state(State.ERROR)
             return
-            
+
+        if self.NFC_reader.lector is None:
+            self.error= ErrorCode.NFC
+            self.set_state(State.ERROR)
+        
         self.set_state(State.CALIBRATION)
         self.status_led.calibration()
 
@@ -113,18 +127,25 @@ class Controller:
 
     def _contrast(self):
         if self.button.is_pressed:
-            run_test(self.compressor.positive_fan, self.compressor.negative_fan, tsi=self.tsi, folder=0, init=False, csv=False, contrast=True)
+            self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan, tsi=self.tsi, folder=0, init=False, csv=False, contrast=True)
+        if self.rmse <3 and self.mae<3:
+            self.status_led.testOk()
+        else:
+            self.status_led.testFail()
+
+
+    def _waiting_4_card(self):
+        self.compressor.idle()
+        if self.NFC_reader.card_present():
+            self.NFC_reader.load_password()
+
+            if self.lot==None:
+                self.NFC_reader.authenticate_block(4)
+                self.lot=self.NFC_reader.read_block(4)
+            self.set_state(self.state.WAITING_4_SENSOR)
 
 
     def _waiting_4_sensor(self):
-        self.compressor.idle()
-
-        if self.button.is_held:
-            if self.tsi.ser is not None:
-                run_test(self.compressor.positive_fan, self.compressor.negative_fan, tsi=self.tsi, folder=0, init=False, csv=False, contrast=True)
-            else:
-                print("ERROR en serial TSI")
-
 
         if detect_sensor():
             self.set_state(State.READY_TO_START)
@@ -142,10 +163,14 @@ class Controller:
             self.set_state(State.WAITING_4_SENSOR)
             self.status_led.waiting4sensor()
 
+        elif not self.NFC_reader.card_present():
+            self.lot=None
+            self.set_state(State.WAITING_4_CARD)
+
         
 
     def _test(self):
-        self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan, folder=0, init=False, csv=True)
+        self.rmse, self.mae= run_test(self.compressor.positive_fan, self.compressor.negative_fan, folder=self.lot, init=False, csv=True)
         self.compressor.idle()
         if self.rmse <3 and self.mae<3:
             self.status_led.testOk()
@@ -169,6 +194,11 @@ class Controller:
 
             case ErrorCode.FAN:
                 self.status_led.error(4)
+
+            case ErrorCode.NFC:
+                self.status_led.error(5)
+
+                
         if self.button.is_held:
             self.status_led.off()
             self.set_state(State.INIT)

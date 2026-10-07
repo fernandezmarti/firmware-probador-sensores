@@ -3,7 +3,7 @@ from pathlib import Path
 import csv
 
 def obtener_siguiente_csv(folder):
-    folder = Path("Conexion larga sin codo")/folder
+    folder =Path(folder)
     folder.mkdir(parents=True, exist_ok=True)
 
     numeros = []
@@ -30,6 +30,14 @@ def save_csv(serial_data, i2c_data,mae,rmse,folder=None, name=None):
     elif folder==999:
         name=  Path("contrastacion") / datetime.now().strftime("%Y%m%d_%H%M%S")
         header="TSI"
+
+    elif folder==None:
+        name=  Path("NO_ID") / datetime.now().strftime("%Y%m%d_%H%M%S")
+        header="SF-A-022"
+
+    else:
+        name=obtener_siguiente_csv(folder)
+        header="SF-A-022"
 
     with open(f'{name}.csv', "w", newline="") as f:
 
