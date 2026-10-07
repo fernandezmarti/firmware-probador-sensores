@@ -112,9 +112,10 @@ class Controller:
             self.set_state(State.ERROR)
             return
 
-        if self.NFC_reader.lector is None:
+        if not self.NFC_reader.init():
             self.error= ErrorCode.NFC
             self.set_state(State.ERROR)
+            return
         
         self.set_state(State.CALIBRATION)
         self.status_led.calibration()

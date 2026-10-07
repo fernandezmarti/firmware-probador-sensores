@@ -20,6 +20,17 @@ class NFCReader:
             self.conexion = self.lector.createConnection()
             return
 
+    def init(self):
+        if self.lector is None:
+            lectores=readers()
+            if not lectores:
+                return False
+            else:
+                self.lector = lectores[0]
+                self.conexion = self.lector.createConnection()
+                return True
+        else:
+            return True
 
 
     def wait4card(self):
@@ -138,9 +149,9 @@ class NFCReader:
             print(f"Error consultando tarjeta NFC: {e}")
             return False
 
-lectorNFC=NFCReader()
-lectorNFC.wait4card()
-lectorNFC.show_UID()
-lectorNFC.load_password()
-lectorNFC.authenticate_block(4)
-lectorNFC.read_block(4)
+# lectorNFC=NFCReader()
+# lectorNFC.wait4card()
+# lectorNFC.show_UID()
+# lectorNFC.load_password()
+# lectorNFC.authenticate_block(4)
+# lectorNFC.read_block(4)
