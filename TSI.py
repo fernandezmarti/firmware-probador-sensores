@@ -1,5 +1,6 @@
 import serial
 import numpy as np
+import os
 
 class TSIDevice:
     """
@@ -66,7 +67,9 @@ class TSIDevice:
             self.ser.reset_output_buffer()
         except Exception:
             return False
-
+    def is_connected(self):
+        return os.path.exists(self.port)
+    
     def close(self):
         """Cierra el puerto serie."""
 

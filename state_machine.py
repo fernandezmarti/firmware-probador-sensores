@@ -133,7 +133,7 @@ class Controller:
                 self.status_led.testOk()
             else:
                 self.status_led.testFail()
-        elif not (self.ser is not None and self.ser.is_open):
+        if not self.tsi.is_connected():
             self.set_state(State.INIT)
             self.status_led.init()
 

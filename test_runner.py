@@ -66,7 +66,7 @@ def run_test(positive_fan, negative_fan,tsi=None,folder=None,name=None, steps=14
         rmse=metrics.rmse(sensirion_array, tsi_array)
         mae=metrics.mae(sensirion_array, tsi_array)
         save_csv(tsi_data, sensirion_data, mae, rmse, folder=999)
-        
+        return rmse, mae
     else:
         flux_array=np.array(flux_data)
     if negative_fan is not None and positive_fan is not None and not contrast:
