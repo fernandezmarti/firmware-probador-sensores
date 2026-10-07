@@ -98,7 +98,7 @@ class statusLED():
 
             case LedState.PULSE_OFF:
 
-                self.red.off()
+                self.off()
 
                 if now - self.last_change >= self.interval:
                     self.last_change = now

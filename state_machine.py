@@ -123,7 +123,7 @@ class Controller:
     def _calibration(self):
         
         calibrate() # despues de 5 intentos
-        self.set_state(State.WAITING_4_SENSOR)
+        self.set_state(State.WAITING_4_CARD)
         self.status_led.waiting4sensor()
 
     def _contrast(self):

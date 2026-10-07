@@ -130,7 +130,9 @@ class NFCReader:
                 for x in datos
             )
 
-            print(texto)
+            return texto
+        else:
+            return None
 
     def card_present(self):
         """
