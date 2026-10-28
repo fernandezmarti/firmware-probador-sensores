@@ -1,4 +1,4 @@
-from gpiozero import PWMOutputDevice, Button, PWMLED, LED
+from gpiozero import PWMOutputDevice, PWMLED, LED
 import time
 from enum import Enum, auto
 
@@ -6,12 +6,6 @@ from enum import Enum, auto
 POSITIVE_FAN_PWM_PIN = 12
 NEGATIVE_FAN_PWM_PIN = 13
 
-button = Button(
-    pin=25,
-    pull_up=True,
-    bounce_time=0.1
-)
-button.hold_time = 1
 
 
 class LedState(Enum):
