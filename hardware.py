@@ -43,7 +43,7 @@ class statusLED():
     def init(self):
         self.off()
         self.red.on()
-        self.green.value=127/255
+        self.blue.on()
     
     def calibration(self):
         pass
@@ -91,6 +91,7 @@ class statusLED():
             case LedState.PULSE_ON:
 
                 self.red.on()
+                self.blue.on()
 
                 if now - self.last_change >= self.interval:
                     self.last_change = now
@@ -112,7 +113,7 @@ class statusLED():
 
             case LedState.PAUSE:
 
-                self.red.off()
+                self.off()
 
                 if now - self.last_change >= self.pause_time:
                     self.last_change = now
