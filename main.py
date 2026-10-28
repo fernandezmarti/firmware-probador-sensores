@@ -6,7 +6,7 @@ from gpiozero import Button
 button = Button(
     pin=25,
     pull_up=True,
-    bounce_time=0.1
+    bounce_time=0.1,
     hold_time = 1)   
 
 status_led=statusLED()
